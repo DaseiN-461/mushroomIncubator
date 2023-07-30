@@ -1,5 +1,3 @@
-
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -56,12 +54,12 @@ enum state_UI{
   sel_pid_windowSize
   
 };
-state_UI currentStateUI = sel_config;
+state_UI currentStateUI = pid_monitor;
 
 bool pid_temp = true; // pid temp defaul, false = hum
-bool config_pid = false;
-bool pid_enable = false;
-int count = 0;
+bool config_pid = true;
+bool pid_enable = true;
+
 void stateMachine(state_UI currentState);
 
 
@@ -151,11 +149,11 @@ void setup()
  
 
   // Configurar los pines táctiles como entradas
-  touchAttachInterrupt(TOUCH_PIN_UP, touchUpISR, 12); // Umbral de sensibilidad táctil (ajustar según necesidades)
-  touchAttachInterrupt(TOUCH_PIN_DOWN, touchDownISR, 12); // Umbral de sensibilidad táctil (ajustar según necesidades)
-  touchAttachInterrupt(TOUCH_PIN_SEL, touchSelISR, 12); // Umbral de sensibilidad táctil (ajustar según necesidades)
-  touchAttachInterrupt(TOUCH_PIN_LEFT, touchLeftISR, 12); // Umbral de sensibilidad táctil (ajustar según necesidades)
-  touchAttachInterrupt(TOUCH_PIN_RIGHT, touchRightISR, 12); // Umbral de sensibilidad táctil (ajustar según necesidades)
+  touchAttachInterrupt(TOUCH_PIN_UP, touchUpISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+  touchAttachInterrupt(TOUCH_PIN_DOWN, touchDownISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+  touchAttachInterrupt(TOUCH_PIN_SEL, touchSelISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+  touchAttachInterrupt(TOUCH_PIN_LEFT, touchLeftISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+  touchAttachInterrupt(TOUCH_PIN_RIGHT, touchRightISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
 
   
   oledSetup();
@@ -170,7 +168,7 @@ void setup()
 
   xTaskCreatePinnedToCore(oledTask, "oled task", 5*1024, NULL, 1, &oledTaskHandle,1);
   
-  xTaskCreatePinnedToCore(taskUserInterfaceFSM, "user interface fsm", 10*1024, NULL, 2, NULL,1);
+  xTaskCreatePinnedToCore(taskUserInterfaceFSM, "user interface fsm", 10*1024, NULL, 5, NULL,1);
   
 
  
@@ -330,7 +328,7 @@ void taskUserInterfaceFSM(void* pvParameters){
       }
       
     }else{
-      //if(eTaskGetState(oledTaskHandle)!=eSuspended){
+      //if(eTaskGetState(oledMODO \t(en desarrollo: TaskHandle)!=eSuspended){
         vTaskSuspend(oledTaskHandle);
       //}
       
@@ -347,18 +345,22 @@ void taskUserInterfaceFSM(void* pvParameters){
       case sel_config:
         oled.clearDisplay();
         oled.setCursor(0,0);
+        oled.print("select configuration\n\n");
+        oled.print("UP: TX UART (!)\nDOWN: PID\nLEFT: BACK TO MONITOR\nRIGHT: GO NEXT");
+        oled.print("\n\n\t->[");
         if(config_pid){
-          oled.print("PID\n");
+          oled.print("PID");
         }else{
-          oled.print("MODO\n");
+          oled.print("NO DISPONIBLE");
         }
+        oled.print("]");
         oled.display();
         break;
         
       case sel_pid:
         oled.clearDisplay();
         oled.setCursor(0,0);
-        oled.println("Seleccione el PID");
+        oled.println("select PID\n\n\n");
         if(pid_temp){
           
           oled.print("[PID temperatura]\n");
@@ -387,7 +389,7 @@ void taskUserInterfaceFSM(void* pvParameters){
     
 
     
-    vTaskDelay(50/portTICK_PERIOD_MS);
+    vTaskDelay(100/portTICK_PERIOD_MS);
   } 
 }
 
@@ -421,12 +423,13 @@ void stateMachine(state_UI currentState){
 
       // go to the config selected
       if(touchRightPressed){
+        touchRightPressed = false;  
         if(config_pid){
           Serial.println("select pid");
           currentStateUI = sel_pid;
         
        
-          touchRightPressed = false;
+          
         }
       }
 
@@ -452,31 +455,13 @@ void stateMachine(state_UI currentState){
           Serial.println("hum");
         }
         if(touchSelPressed){
-          currentStateUI = sel_pid_enable;
-          Serial.println("pid is selected, are you enable?");
           touchSelPressed = false;
-        }
-
-/*
-        // back to the sel config
-        if (touchLeftPressed){
-          currentStateUI = sel_config;
-          Serial.println("config");
-          touchLeftPressed = false;
-          delay(1000);
-        }
-*/
-   /*
-        // back to the monitor
-        if (touchSelPressed){
           
-          currentStateUI = pid_monitor;
-          Serial.println("monitor");
-          delay(1000);
-          touchSelPressed = false;
-        }
-    */  
-        
+          currentStateUI = sel_pid_enable;
+       
+          Serial.println("pid is selected, are you enable?");
+          
+        }       
         break;
       
       case sel_pid_enable:
@@ -494,13 +479,13 @@ void stateMachine(state_UI currentState){
         }
 
 
-        if(pid_enable){
+        if(touchRightPressed&&pid_enable){
+          touchRightPressed = false;
           
-          if(touchRightPressed){
-            currentStateUI = sel_pid_setpoint;
-            Serial.println("pid is enable, whats setpoint?");
-            touchRightPressed = false;
-          }
+          currentStateUI = sel_pid_setpoint;
+          Serial.println("pid is enable, whats setpoint?");
+            
+          
         }
         
         break;
