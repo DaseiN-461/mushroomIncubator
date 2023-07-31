@@ -117,22 +117,21 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                           // Si se habilito
                                           if(pid_enable){
                                                   // Ajustar el valor de la estructura
-                                                  args->enable=true;
+                                                  pidTempArgs.enable=true;
                                           // Si se deshabilito
                                           }else{
-                                                  args->enable=false;
+                                                  pidTempArgs.enable=false;
                                           }
                                           
                                   // Si el PID seleccionado es el de humedad
                                   }else{
-                                          Serial.println("hello from pid humedad");
                                           // Si se habilito
                                           if(pid_enable){
                                                   // Ajustar el valor de la estructura
-                                                  args->enable=true;
+                                                  pidTempArgs.enable=true;
                                           // Si se deshabilito
                                           }else{
-                                                  args->enable=false;
+                                                  pidTempArgs.enable=false;
                                           }
                                  
                                   }
@@ -143,61 +142,51 @@ void stateMachine(state_UI currentState, void* pvParameters){
                           }
                           
                           break;
-                    
+
+                  // Estado de selección del SETPOINT del PID escogido
                   case sel_pid_setpoint:
-                   
-                      // PID Temperatura: AJUSTE DE VALOR DE SETPOINT 
-                      
-                      // Si se habilita el PID de tempertaura
-                      if(pid_enable && pid_temp){ 
-                              // Si el botón de UP es presionado
-                              if(touchUpPressed){
-                                      touchUpPressed = false;
-                                      // Añade uno al valor del setpoint.
-                                      args->setpoint++;
-                                      
-                                      Serial.printf("sp: %f\n",args->setpoint);
-                                      
-                              }
-                              //boton de DOWN
-                              if (touchDownPressed) {
-                                      touchDownPressed = false;
-                                      
-                                      args->setpoint--;
-                                      
-                                      Serial.printf("sp: %f\n",args->setpoint);
-                              }
-                              
-                      // PID Humedad: AJUSTE DE VALOR DE SETPOINT 
                        
-                      }else if(pid_enable && !pid_temp){
-                              if(touchUpPressed){
-                                      touchDownPressed = false;
-            
-                                      //pidHumArgs.setpoint++;
-                                      Serial.println("subiendole a la humedad");  
-                              }
-                              if(touchDownPressed){
-                                      touchDownPressed = false;
-            
-                                      //pidHumArgs.setpoint--;
-                                      Serial.println("bajandole a la humedad");  
-                                      
-                              }
-                      }
-            
-            
-                    if(touchLeftPressed){
-                      touchLeftPressed = false;
-                      
-            
-                      Serial.println("setpoint is saved, going to monitor ->");
-                      currentStateUI= pid_monitor;
-                      
-                    }
-                    state_configSetpoint_printOled(args->setpoint);
-                    
-                    break;  
+                          // PID Temperatura: AJUSTE DE VALOR DE SETPOINT 
+                          
+                          if(pid_enable && pid_temp){ 
+                                  // Si el botón de UP es presionado
+                                  if(touchUpPressed){
+                                          pidTempArgs.setpoint++;
+                                          touchUpPressed = false;                                                      
+                                  }
+                                  //boton de DOWN
+                                  if (touchDownPressed) {
+                                          pidTempArgs.setpoint--;
+                                          touchDownPressed = false;
+                                  }
+                                  
+                                  // Se imprime en la pantalla OLED el SETPOINT seleccionado
+                                  state_configSetpoint_printOled(pidTempArgs.setpoint);
+                                  
+                          // PID Humedad: AJUSTE DE VALOR DE SETPOINT 
+                           
+                          }else if(pid_enable && !pid_temp){
+                                  if(touchUpPressed){
+                                          pidHumArgs.setpoint++;
+                                          touchDownPressed = false; 
+                                  }
+                                  if(touchDownPressed){
+                                          pidHumArgs.setpoint--;
+                                          touchDownPressed = false;                                      
+                                  }
+                                  // Se imprime en la pantalla OLED el SETPOINT seleccionado
+                                  state_configSetpoint_printOled(pidHumArgs.setpoint);
+                          }
+                        
+    
+                        // Si el boton Izquierda es presionado, se confirma la seleccion
+                        if(touchLeftPressed){
+                                // El siguiente estado es el monitor de los PID
+                                currentStateUI= pid_monitor;
+                                touchLeftPressed = false;                          
+                        }
+                        
+                        break;  
         }
   
  }

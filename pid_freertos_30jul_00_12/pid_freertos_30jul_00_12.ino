@@ -39,7 +39,7 @@ void setup()
         xTaskCreatePinnedToCore(task_MONITOR, "[oled] monitor task", 10*1024, NULL, 1, &oledTaskHandle,1);
         xTaskCreatePinnedToCore(task_FSM, "[oled] user interface fsm", 20*1024, &pidTempArgs, 2, &fsmTaskHandle,1);
         
-        xTaskCreatePinnedToCore(mainTask, "main Task", 10*1024, NULL, 2, NULL,1);
+        xTaskCreatePinnedToCore(mainTask, "main Task", 10*1024, NULL, 5, NULL,1);
         
       
        
@@ -117,7 +117,7 @@ void task_MONITOR(void* pvParameters){
                 
                 oled.display();
                 
-                vTaskDelay(50/portTICK_PERIOD_MS);
+                vTaskDelay(200/portTICK_PERIOD_MS);
         }
 }
 
@@ -160,7 +160,6 @@ void mainTask(void* pvParameters){
                         // Si ningún botón es presionado.
                         // Si la tarea no estaba suspendida, se suspende.
                         if(eTaskGetState(fsmTaskHandle)!= eSuspended){
-                                Serial.println("fsmTaskSuspended");
                                 vTaskSuspend(fsmTaskHandle);
                         }
                 }
@@ -174,6 +173,7 @@ void mainTask(void* pvParameters){
                         // Si la tarea estaba suspendida
                         if(eTaskGetState(pidTempTaskHandle)==eSuspended){
                                 // La reanuda
+                                Serial.println("pidtemp reanudado");
                                 vTaskResume(pidTempTaskHandle);
                           
                         }
@@ -182,6 +182,7 @@ void mainTask(void* pvParameters){
                         // Si no estaba suspendida
                         if(eTaskGetState(pidTempTaskHandle)!= eSuspended){
                                 // La suspende
+                                Serial.println("pidtemp suspendido");
                                 vTaskSuspend(pidTempTaskHandle);
                         }
                 }
@@ -230,7 +231,7 @@ void task_FSM(void* pvParameters){
                                 break;
                         
                  }      
-                 vTaskDelay(500/portTICK_PERIOD_MS);        
+                 vTaskDelay(50/portTICK_PERIOD_MS);        
         } 
 }
 
