@@ -37,9 +37,9 @@ void setup()
       
       
         xTaskCreatePinnedToCore(task_MONITOR, "[oled] monitor task", 10*1024, NULL, 1, &oledTaskHandle,1);
-        xTaskCreatePinnedToCore(task_FSM, "[oled] user interface fsm", 20*1024, &pidTempArgs, 2, &fsmTaskHandle,1);
+        xTaskCreatePinnedToCore(task_FSM, "[oled] user interface fsm", 20*1024, &pidTempArgs, 5, &fsmTaskHandle,1);
         
-        xTaskCreatePinnedToCore(mainTask, "main Task", 10*1024, NULL, 5, NULL,1);
+        xTaskCreatePinnedToCore(mainTask, "main Task", 10*1024, NULL, 2, NULL,1);
         
       
        
@@ -107,15 +107,7 @@ void task_PID(void* pvParameters){
 void task_MONITOR(void* pvParameters){
   
         while(1){
-                oled.clearDisplay();
-                oled.setCursor(0,0);
-            
-                oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
-                oled.printf("\n\t time:%lu|en:%i \n -------------------",pidTempArgs.windowCurrentTime, pidTempArgs.enable);
-                oled.printf("\n[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
-                oled.printf("\n\t time:%lu",pidHumArgs.windowCurrentTime);
-                
-                oled.display();
+                state_monitor_printOled();
                 
                 vTaskDelay(200/portTICK_PERIOD_MS);
         }
@@ -129,7 +121,9 @@ void task_MONITOR(void* pvParameters){
 void mainTask(void* pvParameters){
 
         while(1){
-          
+                //////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////// MONITOR TASK //////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////
                 // Condicion para administrar la tarea del monitor: cuando no se está utilizando.
                 if(currentStateUI == pid_monitor){
                         // Si el estado actual de la máquina es el monitor y la tarea se encuentra suspendida,
@@ -146,7 +140,10 @@ void mainTask(void* pvParameters){
                                 vTaskSuspend(oledTaskHandle);
                         }      
                 }
-            
+
+                //////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////// USER INTERFACE FSM TASK //////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////
                 // Condicion para administrar la tarea de la máquina de estados: si ningún botón es presionado.
                 if(touchUpPressed or touchDownPressed or touchLeftPressed or touchRightPressed or touchSelPressed){
 
@@ -164,6 +161,9 @@ void mainTask(void* pvParameters){
                         }
                 }
 
+                //////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////// MONITOR TASK //////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////
                 // Condición para administrar la tarea de PID:
 
                 ///////////////////////// PID TEMPERATURA ////////////////////////////////////

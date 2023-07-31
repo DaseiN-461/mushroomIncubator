@@ -19,6 +19,7 @@ state_UI currentStateUI = pid_monitor;
 
 
 void oledSetup();
+void state_monitor_printOled();
 void state_selConfig_printOled();
 void state_selPID_printOled();
 void state_configSetpoint_printOled(double setpoint);
@@ -74,26 +75,31 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                 touchLeftPressed = false;
                         }
                         break;
+                        
                 // Si el estado es la seleccion del PID
                 case sel_pid:
                         // Si el boton Arriba es presionado
                         if(touchUpPressed){
-                              //  Se selecciona el PID de temperatura
-                              pid_temp = true;
-                              touchUpPressed = false;
+                                //  Se selecciona el PID de temperatura
+                                pid_temp = true;
+                                touchUpPressed = false;
                         }
                         // Si el boton Abajo es presionado
                         if(touchDownPressed){
-                              // Se selecciono el PID de humedad
-                              pid_temp = false;
-                              touchDownPressed = false;
+                                // Se selecciono el PID de humedad
+                                pid_temp = false;
+                                touchDownPressed = false;
                         }
                         // Si el boton Select es presionado
                         if(touchSelPressed){
-                              // Se confirma la selección y el siguiente estado es la activación del PID
-                              currentStateUI = sel_pid_enable;
-                              touchSelPressed = false;
-                        }       
+                                // Se confirma la selección y el siguiente estado es la activación del PID
+                                currentStateUI = sel_pid_enable;
+                                touchSelPressed = false;
+                        }   
+                        if(touchLeftPressed){
+                                // Vuelve a la selección de configuración
+                                currentStateUI = sel_config;
+                        }
                         break;
                   
                   // Si el estado es la seleccion de activacion del PID
@@ -128,10 +134,10 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                           // Si se habilito
                                           if(pid_enable){
                                                   // Ajustar el valor de la estructura
-                                                  pidTempArgs.enable=true;
+                                                  pidHumArgs.enable=true;
                                           // Si se deshabilito
                                           }else{
-                                                  pidTempArgs.enable=false;
+                                                  pidHumArgs.enable=false;
                                           }
                                  
                                   }
@@ -145,7 +151,6 @@ void stateMachine(state_UI currentState, void* pvParameters){
 
                   // Estado de selección del SETPOINT del PID escogido
                   case sel_pid_setpoint:
-                       
                           // PID Temperatura: AJUSTE DE VALOR DE SETPOINT 
                           
                           if(pid_enable && pid_temp){ 
@@ -188,6 +193,11 @@ void stateMachine(state_UI currentState, void* pvParameters){
                         
                         break;  
         }
+        touchLeftPressed = false;
+        touchRightPressed = false;
+        touchUpPressed = false;
+        touchDownPressed = false;
+        touchSelPressed = false;
   
  }
 
@@ -196,6 +206,24 @@ void stateMachine(state_UI currentState, void* pvParameters){
 ///////////////////////////////////////////// Finite State Machine /////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void state_monitor_printOled(){
+                oled.clearDisplay();
+                oled.setCursor(0,0);
+            
+                if(pidTempArgs.enable or pidHumArgs.enable){
+                        if(pidTempArgs.enable){
+                                oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
+                                oled.printf("\n\t time:%lu|on/off:%i \n -------------------",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
+                        }
+                        if(pidHumArgs.enable){
+                                oled.printf("\n[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
+                                oled.printf("\n\t time:%lu|on/off:%i",pidHumArgs.windowCurrentTime,pidHumArgs.enable);   
+                        }
+                }else{
+                        oled.println("my\n\tlittle\n\t\tmushRoom\n\nSEL:CONFIG");
+                }
+                oled.display();
+}
 
 void state_selConfig_printOled(){
               oled.clearDisplay();
@@ -215,13 +243,14 @@ void state_selConfig_printOled(){
 void state_selPID_printOled(){
               oled.clearDisplay();
               oled.setCursor(0,0);
-              oled.println("select PID\n\n\n");
+              oled.println("select PID\n");
               if(pid_temp){
                 
-                oled.print("[PID temperatura]\n");
+                oled.print("->[PID temperatura]\n");
               }else{
-                oled.print("[PID humedad]\n");
+                oled.print("->[PID humedad]\n");
               }
+              oled.print("UP: TEMPERATURA\nDOWN:HUMEDAD\nSEL:SELECT\nLEFT: GO BACK\nRIGHT:");
               oled.display();
 }
 
@@ -229,23 +258,31 @@ void state_pidEnable_printOled(){
               oled.clearDisplay();
               oled.setCursor(0,0);
               if(pid_temp){
-                oled.print("[PID temperatura]\n\t");
+                oled.print("[PID temperatura]\n");
               }else{
-                oled.print("[PID humedad]\n\t");
+                oled.print("[PID humedad]\n");
               }
               if(pid_enable){
-                oled.print("ON");
+                oled.print("->ON\n");
               }else{
-                oled.print("OFF");
+                oled.print("->OFF\n");
               }
+
+              oled.print("UP:ON\nDOWN:OFF\nRIGHT: GO NEXT\nLEFT: UNDEFINED\nSEL: UNDEFINED");
+              
               oled.display();
 }
 
 void state_configSetpoint_printOled(double setpoint){
                       oled.clearDisplay();
                       oled.setCursor(0,0);
-                      oled.printf("setpoint: %f",setpoint);
-                      
+                      oled.printf("setpoint: %f\n",setpoint);
+
+                      oled.print("UP:   +\n");
+                      oled.print("DOWN: -\n");
+                      oled.print("LEFT: SET AND SAVE\n");
+                      oled.print("RIGHT: UNDEFINED\n");
+                      oled.print("SEL: UNDEFINED\n");
                       oled.display();
 }
 
