@@ -1,0 +1,40 @@
+La máquina de estados describe el flujo y la lógica entre los distintos estados de la máquina.
+
+Esta compuesta de los siguientes estados.
+
+
+
+Para la implementación en código c++, se utilizó las siguientes estructuras de datos, funciones y tareas.
+
+[Hecho]	Necesito, crear una tarea, para que la máquina de estados se esté ejecutando sólo cuando las interrupciones por botones táctiles activen la flag de touchPINPressed. Una vez terminada la rutina, utilizar el flag (touchPINPressed) para suspender la tarea que ejecuta el flujo de la máquina de estados. Para ahorrar recursos.
+
+Añadir las funciones:
+				
+				[Hecho] Ajuste de enable del PID.
+				[Hecho] Ajuste de setpoint de PID humedad.
+				[] Dos configuraciones de ganancias (agresiva y conservadora).
+				[] Añadir limites a los valores de setpoint.
+				[] Corregir bug de valor inexacto.
+				[] Alerta de falla en medición del sensor a través de la pantalla OLED.
+				
+				Idealmente ...
+				[] Ajuste de ganancias del PID.
+				[] Ajuste de la ventana de tiempo de la salida del PID.
+				[] Ajuste de salidas máximas.
+
+
+Crear dos máquinas de estados, con retorno 1. Para la selección del PID, si la salida es uno, ya se escogió el pid. Con una interrupción (touchPINPressed) pasa a la siguiente máquina de estados, para realizar la configuración de los valores en la estructura de tipo . 
+
+En las lineas 114, del codigo de la fsm. El caso del estado seleccion de habilitacion, se termina la configur
+
+[] Corregir, cuando se suspende las tareas de pid, ajustar la salida a 0.
+[] Corregir, cuando se desactiva el PID, no se devuelve a la pantalla.
+
+Cada vez que se desactiva el PID, al volver a activarlo pedirá la consigna (setpoint) y por lo tanto se configura al momento de hechar a andar. 
+	Una vez que tenga memoria, se podrá guardar una configuracion y apagar hasta el momento en que tenga que partir preconfigurado con los sistemas deseados a la configuracion deseada.
+
+A futuro, hacer con conexión wifi, cuando tenga sistema de registro de datos (logger) y distintas tareas para registrar datos y transmitirlo por wifi. 
+
+Se corrigió varios bugs del UI, pero algunos del sistema ahora no permiten el arranque del pid, puede ser por que el sensor ya no daba lecturas, las realiza cada milesimas de segundos cuando en realidad el sensor minimo mide cada 2 segundos.
+
+[]corregir ese tiempo

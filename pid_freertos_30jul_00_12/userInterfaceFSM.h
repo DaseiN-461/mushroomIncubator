@@ -213,11 +213,15 @@ void state_monitor_printOled(){
                 if(pidTempArgs.enable or pidHumArgs.enable){
                         if(pidTempArgs.enable){
                                 oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
-                                oled.printf("\n\t time:%lu|on/off:%i \n -------------------",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
+                                oled.printf("\n\t time:%lu|on/off:%i",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
                         }
                         if(pidHumArgs.enable){
-                                oled.printf("\n[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
+                                oled.printf("[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
                                 oled.printf("\n\t time:%lu|on/off:%i",pidHumArgs.windowCurrentTime,pidHumArgs.enable);   
+                        }
+                        if(pidTempArgs.enable and pidHumArgs.enable){
+                        }else{
+                                oled.print("\n -------PID-------");
                         }
                 }else{
                         oled.println("my\n\tlittle\n\t\tmushRoom\n\nSEL:CONFIG");
