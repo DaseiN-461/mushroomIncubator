@@ -1,116 +1,19 @@
+#include "libs.h"
+#include "defs.h"
+#include "userInterfaceFSM.h"
+
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 ////////////////////////////////////////////////// FreeRTOS //////////////////////////////////////////////////
 
 TaskHandle_t pidTempTaskHandle, pidHumTaskHandle;
-TaskHandle_t serialTaskHandle, oledTaskHandle; 
+TaskHandle_t serialTaskHandle, oledTaskHandle, fsmTaskHandle; 
 
 
-////////////////////////////////////////////////// USER INTERFACE BUTTONS //////////////////////////////////////////////////
-
-#define TOUCH_PIN_UP  T9  // Pin táctil T4 pin13
-#define TOUCH_PIN_DOWN  T4  // Pin táctil T9 pin32
-#define TOUCH_PIN_SEL  T7  // Pin táctil T7 pin27
-#define TOUCH_PIN_LEFT  T0  // Pin táctil T0 pin04
-#define TOUCH_PIN_RIGHT  T3  // Pin táctil T3 pin15
-
-volatile bool touchUpPressed = false;
-volatile bool touchDownPressed = false;
-volatile bool touchSelPressed = false;
-volatile bool touchLeftPressed = false;
-volatile bool touchRightPressed = false;
-
-void IRAM_ATTR touchUpISR() {
-  touchUpPressed = true;
-}
-
-void IRAM_ATTR touchDownISR() {
-
-  touchDownPressed = true;
-}
-
-void IRAM_ATTR touchSelISR() {
-  touchSelPressed = true;
-}
-void IRAM_ATTR touchLeftISR() {
-  touchLeftPressed = true;
-}
-void IRAM_ATTR touchRightISR() {
-  touchRightPressed = true;
-}
-////////////////////////////////////////////////// FSM Definicion de estados //////////////////////////////////////////////////
-
-
-enum state_UI{
-  
-  pid_monitor,
-
-  sel_config,
- 
-  sel_pid,
-  sel_pid_enable,
-  sel_pid_setpoint,
-  sel_pid_windowSize
-  
-};
-state_UI currentStateUI = pid_monitor;
-
-bool pid_temp = true; // pid temp defaul, false = hum
-bool config_pid = true;
-bool pid_enable = true;
-
-void stateMachine(state_UI currentState);
-
-
-
-////////////////////////////////////////////////// PID Parametros ////////////////////////////////////////////////// 
-#include <PID_v1.h>
-
-#define RELAY_PIN 4
-
-#define LED_PIN 2
-
-
-////////////////////////////////////////////////// DHT 22 SENSOR //////////////////////////////////////////////////
-
-#include "DHT.h"
-#define DHTPIN 23
-#define DHTTYPE DHT21
 
 DHT dht(DHTPIN, DHTTYPE);
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-typedef struct {
-  String id;
-  double setpoint, input, output;
-  double kp, ki, kd;
-  int windowSize;
-  unsigned long windowStartTime;
-  unsigned long windowCurrentTime;
-} PIDTaskArguments;
-
-
-////////////////////////////////////////////////// BUS I2C /////////////////////////////////////////////////////////////////////////
-
-#include <Wire.h>
-#define SDA_PIN 21
-#define SCL_PIN 22
-
-////////////////////////////////////////////////// Librerías de la OLED SSD1306 ////////////////////////////////////////////////////
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
-
-#define OLED_ADDRESS 0X3C
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-
-Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 PIDTaskArguments pidTempArgs = {
     .id="Temperature",
@@ -125,12 +28,6 @@ PIDTaskArguments pidHumArgs = {
     .kp=10, .ki=1, .kd=1,
     .windowSize=5000
   };
-
-typedef struct{
-  PIDTaskArguments pidTemp;
-  PIDTaskArguments pidHum;
-} OLEDTaskArguments;
-
 
 
 void oledSetup();
@@ -166,9 +63,10 @@ void setup()
   //xTaskCreatePinnedToCore(task_serialPrint, "serial print hum", 1*1024, &pidHumArgs, 1, &serialTaskHandle,1);
 
 
-  xTaskCreatePinnedToCore(oledTask, "oled task", 5*1024, NULL, 1, &oledTaskHandle,1);
+  xTaskCreatePinnedToCore(oledTask, "oled task", 10*1024, NULL, 1, &oledTaskHandle,1);
   
-  xTaskCreatePinnedToCore(taskUserInterfaceFSM, "user interface fsm", 10*1024, NULL, 5, NULL,1);
+  xTaskCreatePinnedToCore(taskUserInterfaceFSM, "user interface fsm", 10*1024, &pidTempArgs, 1, &fsmTaskHandle,1);
+  xTaskCreatePinnedToCore(mainTask, "main Task", 10*1024, NULL, 2, NULL,1);
   
 
  
@@ -278,7 +176,7 @@ void oledTask(void* pvParameters){
     
     oled.display();
     
-    vTaskDelay(100/portTICK_PERIOD_MS);
+    vTaskDelay(50/portTICK_PERIOD_MS);
   }
 }
 
@@ -313,215 +211,80 @@ void task_serialPrint(void* pvParameters){
   }
 }
 
-void taskUserInterfaceFSM(void* pvParameters){
-  while(1){
-    
-    
-    stateMachine(currentStateUI);
 
-    
-    
-    
-    if(currentStateUI == pid_monitor){
-      if(eTaskGetState(oledTaskHandle)==eSuspended){
-        vTaskResume(oledTaskHandle);
-      }
-      
-    }else{
-      //if(eTaskGetState(oledMODO \t(en desarrollo: TaskHandle)!=eSuspended){
-        vTaskSuspend(oledTaskHandle);
-      //}
-      
-    }
-    
-    switch(currentStateUI){
-      case sel_pid_setpoint:
-        oled.clearDisplay();
-        oled.setCursor(0,0);
-        oled.printf("setpoint: %f",pidTempArgs.setpoint-1);
-        
-        oled.display();
-        break;
-      case sel_config:
-        oled.clearDisplay();
-        oled.setCursor(0,0);
-        oled.print("select configuration\n\n");
-        oled.print("UP: TX UART (!)\nDOWN: PID\nLEFT: BACK TO MONITOR\nRIGHT: GO NEXT");
-        oled.print("\n\n\t->[");
-        if(config_pid){
-          oled.print("PID");
-        }else{
-          oled.print("NO DISPONIBLE");
-        }
-        oled.print("]");
-        oled.display();
-        break;
-        
-      case sel_pid:
-        oled.clearDisplay();
-        oled.setCursor(0,0);
-        oled.println("select PID\n\n\n");
-        if(pid_temp){
+// Tarea para administrar las tareas: Monitor y máquina de estados
+void mainTask(void* pvParameters){
+
+        while(1){
           
-          oled.print("[PID temperatura]\n");
-        }else{
-          oled.print("[PID humedad]\n");
+                // Condicion para administrar la tarea del monitor: cuando no se está utilizando.
+                if(currentStateUI == pid_monitor){
+                        // Si el estado actual de la máquina es el monitor y la tarea se encuentra suspendida,
+                        // entonces reanuda la tarea del monitor.
+                        if(eTaskGetState(oledTaskHandle)==eSuspended){
+                                vTaskResume(oledTaskHandle);
+                                Serial.println("hello from pid_monitor");
+                        }
+                }else{
+                        // Si el estado actual no es el monitor y la tarea no se encuentra suspendida,
+                        // entonces suspende la tarea del monitor.
+                        if(eTaskGetState(oledTaskHandle)!= eSuspended){
+                                Serial.println("fsmTaskSuspended");
+                                vTaskSuspend(oledTaskHandle);
+                        }      
+                }
+            
+                // Condicion para administrar la tarea de la máquina de estados: si ningún botón es presionado.
+                if(touchUpPressed or touchDownPressed or touchLeftPressed or touchRightPressed or touchSelPressed){
+                        Serial.println("un boton fue presionado");
+                        
+                        // Si al menos un botón está siendo presionado.
+                        //Si la tarea estaba suspendida, se reanuda.
+                        if(eTaskGetState(fsmTaskHandle)==eSuspended){
+                                vTaskResume(fsmTaskHandle);
+                          
+                        }
+                  
+                        
+                }else{
+                        // Si ningún botón es presionado.
+                        // Si la tarea no estaba suspendida, se suspende.
+                        if(eTaskGetState(fsmTaskHandle)!= eSuspended){
+                                Serial.println("fsmTaskSuspended");
+                                vTaskSuspend(fsmTaskHandle);
+                        }
+                }
+                vTaskDelay(100/portTICK_PERIOD_MS);
         }
-        oled.display();
-        break;
-      case sel_pid_enable:
-        oled.clearDisplay();
-        oled.setCursor(0,0);
-        if(pid_temp){
-          oled.print("[PID temperatura]\n\t");
-        }else{
-          oled.print("[PID humedad]\n\t");
-        }
-        if(pid_enable){
-          oled.print("ON");
-        }else{
-          oled.print("OFF");
-        }
-        oled.display();
-        break;
-      
-    }
-    
-
-    
-    vTaskDelay(100/portTICK_PERIOD_MS);
-  } 
 }
 
-void stateMachine(state_UI currentState){
-  switch(currentStateUI){
+void taskUserInterfaceFSM(void* pvParameters){
+  PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
+  while(1){
+   
     
-    case pid_monitor:
+
+    stateMachine(currentStateUI, args);
+    
+    
+    
+    switch(currentStateUI){
       
-      if (touchSelPressed){
-        currentStateUI = sel_config;
-        
-        Serial.println("config");
-  
-        touchSelPressed = false;
-      }
-      break;
+            case sel_config:
+              state_selConfig_printOled();
+              break;
+              
+            case sel_pid:
+              state_selPID_printOled();
+              break;
+            case sel_pid_enable:
+              state_pidEnable_printOled();
+              break;
 
-    case sel_config:
-      
-      //select config
-      if(touchUpPressed){
-        config_pid = false;
-        Serial.println("mode");
-        touchUpPressed = false;        
-      }
-      if(touchDownPressed){
-        config_pid = true;
-        Serial.println("pid");
-        touchDownPressed = false;
-      }
-
-      // go to the config selected
-      if(touchRightPressed){
-        touchRightPressed = false;  
-        if(config_pid){
-          Serial.println("select pid");
-          currentStateUI = sel_pid;
-        
-       
-          
-        }
-      }
-
-      // back to the monitor
-      if (touchLeftPressed){
-        currentStateUI = pid_monitor;
-        Serial.println("monitor");
-        touchLeftPressed = false;
-      }
-      break;
-
-
-    case sel_pid:
-        
-        if(touchUpPressed){
-          touchUpPressed = false;
-          pid_temp = true;
-          Serial.println("temp");
-        }
-        if(touchDownPressed){
-          touchDownPressed = false;
-          pid_temp = false;
-          Serial.println("hum");
-        }
-        if(touchSelPressed){
-          touchSelPressed = false;
-          
-          currentStateUI = sel_pid_enable;
-       
-          Serial.println("pid is selected, are you enable?");
-          
-        }       
-        break;
-      
-      case sel_pid_enable:
-
-        if(touchUpPressed){
-          pid_enable = true;
-          Serial.println("enable");
-          touchUpPressed = false;
-        }
-
-        if(touchDownPressed){
-          pid_enable = false;
-          Serial.println("disable");
-          touchDownPressed = false;
-        }
-
-
-        if(touchRightPressed&&pid_enable){
-          touchRightPressed = false;
-          
-          currentStateUI = sel_pid_setpoint;
-          Serial.println("pid is enable, whats setpoint?");
+              
             
-          
-        }
-        
-        break;
-        
-      case sel_pid_setpoint:
-        //boton de U
-        if (touchUpPressed) {
-          touchUpPressed = false;
-
-          if(pid_enable && pid_temp){
-            pidTempArgs.setpoint++;
-            Serial.printf("sp: %f\n",pidTempArgs.setpoint);
-          
-          }else if(pid_enable && !pid_temp){
-            Serial.println("subiendole a la humedad");
           }
           
-        }
-      
-        //boton de D
-        if (touchDownPressed) {
-          touchDownPressed = false;
-          pidTempArgs.setpoint--;
-          Serial.printf("sp: %f\n",pidTempArgs.setpoint-1);
-          
-        }
-
-
-        if(touchLeftPressed){
-          touchLeftPressed = false;
-
-          Serial.println("setpoint is saved, going to monitor ->");
-          currentStateUI= pid_monitor;
-          
-        }
-        
-        break;  
-  }
- }
+          vTaskDelay(200/portTICK_PERIOD_MS);    
+  } 
+}
