@@ -184,8 +184,12 @@ void stateMachine(state_UI currentState, void* pvParameters){
                           }
                         
     
-                        // Si el boton Izquierda es presionado, se confirma la seleccion
+    //     //    //       // Si el boton Izquierda es presionado, se confirma la selección
+    //     //    //       // La configuración debe ser guardada en la EEPROM
                         if(touchLeftPressed){
+                                // Guarda en la EEPROM la configuración establecida
+                                save_config();
+
                                 // El siguiente estado es el monitor de los PID
                                 currentStateUI= pid_monitor;
                                 touchLeftPressed = false;                          
@@ -209,20 +213,34 @@ void stateMachine(state_UI currentState, void* pvParameters){
 void state_monitor_printOled(){
                 oled.clearDisplay();
                 oled.setCursor(0,0);
-            
+
+                // Si alguno de los controladores PID está activo
                 if(pidTempArgs.enable or pidHumArgs.enable){
-                        if(pidTempArgs.enable){
-                                oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
-                                oled.printf("\n\t time:%lu|on/off:%i",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
-                        }
-                        if(pidHumArgs.enable){
-                                oled.printf("[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
-                                oled.printf("\n\t time:%lu|on/off:%i",pidHumArgs.windowCurrentTime,pidHumArgs.enable);   
-                        }
+                        
+                        // Si los dos PID estan activos
                         if(pidTempArgs.enable and pidHumArgs.enable){
+                                if(pidTempArgs.enable){
+                                        oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
+                                        oled.printf("\n\t time:%lu|on/off:%i",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
+                                        oled.print("\n -------PID-------");
+                                }
+                                if(pidHumArgs.enable){
+                                        oled.printf("[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
+                                        oled.printf("\n\t time:%lu|on/off:%i",pidHumArgs.windowCurrentTime,pidHumArgs.enable);   
+                                } 
+                        // Si solo un PID está activo
                         }else{
+                                if(pidTempArgs.enable){
+                                        oled.printf("[PID temp] - sp:%.2f\n\tin:%.2f|out:%.2f",pidTempArgs.setpoint,pidTempArgs.input,pidTempArgs.output);
+                                        oled.printf("\n\t time:%lu|on/off:%i",pidTempArgs.windowCurrentTime,pidTempArgs.enable);
+                                }
+                                if(pidHumArgs.enable){
+                                        oled.printf("[PID hum] - sp:%.2f\n\tin:%.2f|out:%.2f",pidHumArgs.setpoint,pidHumArgs.input,pidHumArgs.output);
+                                        oled.printf("\n\t time:%lu|on/off:%i",pidHumArgs.windowCurrentTime,pidHumArgs.enable);   
+                                } 
                                 oled.print("\n -------PID-------");
                         }
+                        
                 }else{
                         oled.println("my\n\tlittle\n\t\tmushRoom\n\nSEL:CONFIG");
                 }

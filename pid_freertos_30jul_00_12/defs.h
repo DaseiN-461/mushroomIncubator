@@ -1,6 +1,9 @@
 ////////////////////////////////////////////////// PID Parametros ////////////////////////////////////////////////// 
 
-
+struct struct_configFromEEPROM {
+  double setpoint;
+  bool enable; 
+};
 
  typedef struct {
   String id;
@@ -16,7 +19,7 @@
 PIDTaskArguments pidTempArgs = {
     .id="Temperature",
     .enable=false,
-    .setpoint=18,
+    .setpoint=27,
     .kp=200, .ki=1, .kd=1,
     .windowSize = 2000
   };
@@ -24,10 +27,55 @@ PIDTaskArguments pidTempArgs = {
 PIDTaskArguments pidHumArgs = {
     .id="Humidity",
     .enable=false,
-    .setpoint=80,
+    .setpoint=90,
     .kp=500, .ki=1, .kd=1,
     .windowSize=5000
   };
+
+void save_config(){
+        // Crear una instancia de la estructura
+        struct_configFromEEPROM temp;
+        struct_configFromEEPROM hum;
+      
+        // Asignar valores a la estructura
+        temp.setpoint = pidTempArgs.setpoint;
+        temp.enable = pidTempArgs.enable;
+
+        hum.setpoint = pidHumArgs.setpoint;
+        hum.enable = pidHumArgs.enable;
+      
+        // Guardar la estructura en la dirección 0 de la EEPROM
+        EEPROM.put(0, temp);
+        delay(1000);
+        EEPROM.put(15, hum);
+        delay(1000);
+      
+        EEPROM.commit();
+        // Finalizar la EEPROM
+        EEPROM.end();
+}
+
+void load_config(){
+        struct_configFromEEPROM temp;
+        struct_configFromEEPROM hum;
+
+        EEPROM.get(0, temp);
+        EEPROM.get(15, hum);
+
+        // Acceder a los valores individuales
+        double temp_setpoint = temp.setpoint;
+        bool temp_enable = temp.enable;
+      
+        double hum_setpoint = hum.setpoint;
+        bool hum_enable = hum.enable;
+
+        // Cargar a la configuracion
+        pidTempArgs.enable = temp_enable;
+        pidTempArgs.setpoint = temp.setpoint;
+
+        pidHumArgs.enable = hum_enable;
+        pidHumArgs.setpoint = hum.setpoint;
+}
 
 //////////////////////////////////////// PID /////////////// GPIOs de entradas y salidas
 

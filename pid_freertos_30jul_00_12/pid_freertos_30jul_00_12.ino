@@ -11,6 +11,12 @@ void setup()
         Serial.begin(115200);
         Wire.begin(SDA_PIN, SCL_PIN);
         dht.begin();
+
+        // La memoria EEPROM del ESP32 es de 4096 BYTES
+        EEPROM.begin(4096);
+
+        // Cargar la configuracion guardada en la EEPROM
+        load_config();
       
       
       
