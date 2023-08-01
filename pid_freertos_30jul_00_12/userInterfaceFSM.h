@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 
@@ -118,6 +111,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
 
                           // Si el boton Derecha es presionado, se confirma la seleccion
                           if(touchRightPressed){
+                                  
                                   // Si el PID seleccionado es el de temperatura
                                   if(pid_temp){
                                           // Si se habilito
@@ -126,7 +120,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                                   pidTempArgs.enable=true;
                                           // Si se deshabilito
                                           }else{
-                                                  pidTempArgs.enable=false;
+                                                  pidTempArgs.enable=false;                                                
                                           }
                                           
                                   // Si el PID seleccionado es el de humedad
@@ -141,8 +135,16 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                           }
                                  
                                   }
-                                  // El siguiente estado es la selección del SETPOINT
-                                  currentStateUI = sel_pid_setpoint;
+
+                                  // El siguiente estado
+                                  if(pid_enable){
+                                          // El siguiente estado es la selección del SETPOINT
+                                          currentStateUI = sel_pid_setpoint;                                          
+                                  }else{
+                                          currentStateUI = pid_monitor;
+                                  }
+                                  
+                                  
                                   touchRightPressed = false;                              
                             
                           }
@@ -285,9 +287,9 @@ void state_pidEnable_printOled(){
                 oled.print("[PID humedad]\n");
               }
               if(pid_enable){
-                oled.print("->ON\n");
+                oled.print("\t->ON\n");
               }else{
-                oled.print("->OFF\n");
+                oled.print("\t->OFF\n");
               }
 
               oled.print("UP:ON\nDOWN:OFF\nRIGHT: GO NEXT\nLEFT: UNDEFINED\nSEL: UNDEFINED");

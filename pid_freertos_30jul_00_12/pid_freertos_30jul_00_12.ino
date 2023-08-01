@@ -33,14 +33,13 @@ void setup()
       
         
         oledSetup();
-        
+
       
         xTaskCreatePinnedToCore(task_PID, "PID temp", 20*1024, &pidTempArgs, 3, &pidTempTaskHandle,0);
         xTaskCreatePinnedToCore(task_PID, "PID hum", 20*1024, &pidHumArgs, 3, &pidHumTaskHandle,0);
         
-        //xTaskCreatePinnedToCore(task_serialPrint, "serial print temp", 1*1024, &pidTempArgs, 1, &serialTaskHandle,1);
-        //xTaskCreatePinnedToCore(task_serialPrint, "serial print hum", 1*1024, &pidHumArgs, 1, &serialTaskHandle,1);
-      
+        //xTaskCreatePinnedToCore(task_serialPrint, "serial TX", 5*1024, NULL, 1, &serialTaskHandle,1);
+       
       
         xTaskCreatePinnedToCore(task_MONITOR, "[oled] monitor task", 10*1024, NULL, 1, &oledTaskHandle,1);
         xTaskCreatePinnedToCore(task_FSM, "[oled] user interface fsm", 20*1024, &pidTempArgs, 5, &fsmTaskHandle,1);
@@ -52,7 +51,7 @@ void setup()
       
         //vTaskSuspend(pidTempTaskHandle);
         //vTaskSuspend(pidHumTaskHandle);
-        vTaskSuspend(serialTaskHandle);
+        //vTaskSuspend(serialTaskHandle);
         //vTaskSuspend(oledTaskHandle);
   
 }
@@ -136,13 +135,11 @@ void mainTask(void* pvParameters){
                         // entonces reanuda la tarea del monitor.
                         if(eTaskGetState(oledTaskHandle)==eSuspended){
                                 vTaskResume(oledTaskHandle);
-                                Serial.println("hello from pid_monitor");
                         }
                 }else{
                         // Si el estado actual no es el monitor y la tarea no se encuentra suspendida,
                         // entonces suspende la tarea del monitor.
                         if(eTaskGetState(oledTaskHandle)!= eSuspended){
-                                Serial.println("fsmTaskSuspended");
                                 vTaskSuspend(oledTaskHandle);
                         }      
                 }
@@ -179,7 +176,6 @@ void mainTask(void* pvParameters){
                         // Si la tarea estaba suspendida
                         if(eTaskGetState(pidTempTaskHandle)==eSuspended){
                                 // La reanuda
-                                Serial.println("pidtemp reanudado");
                                 vTaskResume(pidTempTaskHandle);
                           
                         }
@@ -188,7 +184,6 @@ void mainTask(void* pvParameters){
                         // Si no estaba suspendida
                         if(eTaskGetState(pidTempTaskHandle)!= eSuspended){
                                 // La suspende
-                                Serial.println("pidtemp suspendido");
                                 vTaskSuspend(pidTempTaskHandle);
                         }
                 }
@@ -211,6 +206,12 @@ void mainTask(void* pvParameters){
                         }
                 }
 
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////// SERIAL TX ////////////////////////////////////////////////////////////////
+                if(pidTempArgs.enable or pidHumArgs.enable){
+                        
+                }
+                
 
                 // Condición para administrar la tarea de TX serial: 
                 vTaskDelay(100/portTICK_PERIOD_MS);
@@ -243,10 +244,26 @@ void task_FSM(void* pvParameters){
 
 void task_serialPrint(void* pvParameters){
         PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
+        bool firstDataSended = false;
         while(1){
-                Serial.printf("\n----------- PID %s", args->id);
-                Serial.printf("\t input: %f, output %f\n",args->input, args->output);
-          
+                if(firstDataSended){
+                        Serial.print(",");
+                }
+                if(pidTempArgs.enable or pidHumArgs.enable){
+                        Serial.print("(");
+                        if(pidTempArgs.enable){
+                                Serial.printf("%.2f,%.2f",pidTempArgs.input,pidTempArgs.output);
+                                if(pidHumArgs.enable){
+                                          Serial.print(",");
+                                }
+                        }
+                        if(pidHumArgs.enable){
+                                Serial.printf("%.2f,%.2f",pidHumArgs.input,pidHumArgs.output);
+                        }
+                        Serial.print(")");
+                        firstDataSended = true;
+                }
+                
                 //16ms for 60<frames/second
                 vTaskDelay(500/portTICK_PERIOD_MS);
         }

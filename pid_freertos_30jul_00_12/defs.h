@@ -32,6 +32,20 @@ PIDTaskArguments pidHumArgs = {
     .windowSize=5000
   };
 
+
+
+//////////////////////////////////////// PID /////////////// GPIOs de entradas y salidas
+
+// Relé de salida al actuador de Temperatura
+        // PIN de salida
+#define RELAY_PIN_HEATER 4
+        // Indicador de salida (LED_BUILTIN ESP32 DEVKIT V1)
+#define LED_PIN 2
+
+// Relé de salida al actuador de Humedad
+#define RELAY_PIN_HUMIDIFIER 12
+
+
 void save_config(){
         // Crear una instancia de la estructura
         struct_configFromEEPROM temp;
@@ -76,18 +90,6 @@ void load_config(){
         pidHumArgs.enable = hum_enable;
         pidHumArgs.setpoint = hum.setpoint;
 }
-
-//////////////////////////////////////// PID /////////////// GPIOs de entradas y salidas
-
-// Relé de salida al actuador de Temperatura
-        // PIN de salida
-#define RELAY_PIN_HEATER 4
-        // Indicador de salida (LED_BUILTIN ESP32 DEVKIT V1)
-#define LED_PIN 2
-
-// Relé de salida al actuador de Humedad
-#define RELAY_PIN_HUMIDIFIER 12
-
   
 ////////////////////////////////////////////////// FreeRTOS //////////////////////////////////////////////////
 TaskHandle_t pidTempTaskHandle, pidHumTaskHandle;
@@ -138,6 +140,8 @@ volatile bool touchRightPressed = false;
 bool pid_temp = true; // pid temp defaul, false = hum
 bool config_pid = true;
 bool pid_enable = true;
+
+bool serialTxEnable = false;
 
 
 
