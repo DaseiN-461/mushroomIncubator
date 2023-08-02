@@ -46,6 +46,7 @@ PIDTaskArguments pidHumArgs = {
 #define RELAY_PIN_HUMIDIFIER 12
 
 
+
 void save_config(){
         // Crear una instancia de la estructura
         struct_configFromEEPROM temp;

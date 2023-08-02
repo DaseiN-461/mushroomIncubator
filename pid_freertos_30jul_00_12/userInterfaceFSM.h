@@ -56,9 +56,13 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                 // Si se seleccionó la configuración PID
                                 if(config_pid){
                                         // Entonces el siguiente estado es la seleccion del PID
-                                        currentStateUI = sel_pid;            
+                                        currentStateUI = sel_pid;
+                                        touchRightPressed = false;   
+                                // Se seleccionó la configuración del UART           
+                                }else{
+                                      touchRightPressed = false;                                     
                                 }
-                          touchRightPressed = false;  
+                                touchRightPressed = false;  
                         }
                   
                         // Si el boton Izquierda es presionado
@@ -141,12 +145,19 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                           // El siguiente estado es la selección del SETPOINT
                                           currentStateUI = sel_pid_setpoint;                                          
                                   }else{
+                                          save_config();
                                           currentStateUI = pid_monitor;
                                   }
                                   
                                   
                                   touchRightPressed = false;                              
                             
+                          }
+
+                          // Si el boton LEFT es presionado
+                          if(touchLeftPressed){
+                                  // Vuelve a la selección del PID
+                                  currentStateUI = sel_pid;
                           }
                           
                           break;
@@ -186,8 +197,8 @@ void stateMachine(state_UI currentState, void* pvParameters){
                           }
                         
     
-    //     //    //       // Si el boton Izquierda es presionado, se confirma la selección
-    //     //    //       // La configuración debe ser guardada en la EEPROM
+                        // Si el boton Izquierda es presionado, se confirma la selección
+                        // La configuración debe ser guardada en la EEPROM
                         if(touchLeftPressed){
                                 // Guarda en la EEPROM la configuración establecida
                                 save_config();
@@ -253,28 +264,30 @@ void state_selConfig_printOled(){
               oled.clearDisplay();
               oled.setCursor(0,0);
               oled.print("select configuration\n\n");
-              oled.print("UP: TX UART (!)\nDOWN: PID\nLEFT: BACK TO MONITOR\nRIGHT: GO NEXT");
-              oled.print("\n\n\t->[");
+              oled.print("  \t->[");
               if(config_pid){
                 oled.print("PID");
               }else{
                 oled.print("NO DISPONIBLE");
               }
-              oled.print("]");
+              oled.print("]\n\n");
+              
+              oled.print("UP: TX UART (!)\nDOWN: PID\nLEFT: BACK TO MONITOR\nRIGHT: GO NEXT");
+              
               oled.display();
 }
 
 void state_selPID_printOled(){
               oled.clearDisplay();
               oled.setCursor(0,0);
-              oled.println("select PID\n");
+              oled.print("    select PID\n");
               if(pid_temp){
                 
                 oled.print("->[PID temperatura]\n");
               }else{
                 oled.print("->[PID humedad]\n");
               }
-              oled.print("UP: TEMPERATURA\nDOWN:HUMEDAD\nSEL:SELECT\nLEFT: GO BACK\nRIGHT:");
+              oled.print("\nUP: TEMPERATURA\nDOWN:HUMEDAD\nSEL:SELECT\nLEFT: GO BACK\nRIGHT:UNDEFINED");
               oled.display();
 }
 
@@ -286,13 +299,14 @@ void state_pidEnable_printOled(){
               }else{
                 oled.print("[PID humedad]\n");
               }
+              oled.print("      ");
               if(pid_enable){
                 oled.print("\t->ON\n");
               }else{
                 oled.print("\t->OFF\n");
               }
 
-              oled.print("UP:ON\nDOWN:OFF\nRIGHT: GO NEXT\nLEFT: UNDEFINED\nSEL: UNDEFINED");
+              oled.print("\nUP:ON\nDOWN:OFF\nRIGHT: GO NEXT\nLEFT: BACK\nSEL: UNDEFINED");
               
               oled.display();
 }
@@ -300,9 +314,14 @@ void state_pidEnable_printOled(){
 void state_configSetpoint_printOled(double setpoint){
                       oled.clearDisplay();
                       oled.setCursor(0,0);
-                      oled.printf("setpoint: %f\n",setpoint);
+                      if(pid_temp){
+                              oled.print("[Temperatura]");
+                      }else{
+                              oled.print("[Humedad relativa]");
+                      }
+                      oled.printf("\nsetpoint: %.0f\n",setpoint);
 
-                      oled.print("UP:   +\n");
+                      oled.print("\n\nUP:   +\n");
                       oled.print("DOWN: -\n");
                       oled.print("LEFT: SET AND SAVE\n");
                       oled.print("RIGHT: UNDEFINED\n");
