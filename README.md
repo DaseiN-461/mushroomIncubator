@@ -5,6 +5,11 @@ The following repository supports the development of an environmental conditioni
 >> Contact us [Instagram](https://www.instagram.com/aonde_la_byte/).
 
 # Features
- * 
- * Cuenta con una interfaz de usuario que permite configurar y monitorear el funcionamiento de un control PID para temperatura y otro para humedad. 
+ * Un pid de temperatura y uno de humedad relativa.
+ * Cuenta con una interfaz de usuario que permite configurar y monitorear el funcionamiento de los controles PID.
  * La configuración establecida se guarda automáticamente. Al reiniciar el sistema, inicia en la configuración establecida.
+ * Comunicación serial de los datos para su registro desde una computadora.
+
+# Futuras mejoras
+ * Registro de datos en una memoria micro SD.
+ * Interfaz web.
