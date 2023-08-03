@@ -12,7 +12,14 @@ The following repository supports the development of an environmental conditioni
 
 # Futuras mejoras
  * Registro de datos en una memoria micro SD.
+ * Configuración de la frecuencia de medición, transmisión de datos y registro.
+ * Configuración de tamaño de la ventana y cotas para el mínimo y máximo de la salida PWM.
+ * Añadir restricciones para el ingreso de parámetros 
  * Interfaz web.
+
+# Descrición del sistema electrónico
+
+Se realizó el programa destinado a un microcontrolador ESP32. Este se encarga de obtener las mediciones de temperatura y humedad a través de un sensor DHT 21, compara la diferencia entre el valor medido y el deseado (error), calcula y genera una señal de potencia promedio proporcional al error que modula las conmutaciones de los relés a los actuadores. Además, el microcontrolador despliega información en una pantalla OLED recibe interrupciones mediante cinco botones táctiles que permiten navegar a través de una interfaz de usuario.
 
 # Definición de pines
 A continuación se presenta la definición de los pines y una breve descripción de cada uno.
