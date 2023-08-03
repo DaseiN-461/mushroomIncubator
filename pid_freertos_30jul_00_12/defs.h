@@ -38,7 +38,7 @@ PIDTaskArguments pidHumArgs = {
 
 // Relé de salida al actuador de Temperatura
         // PIN de salida
-#define RELAY_PIN_HEATER 4
+#define RELAY_PIN_HEATER 34
         // Indicador de salida (LED_BUILTIN ESP32 DEVKIT V1)
 #define LED_PIN 2
 
