@@ -101,7 +101,7 @@ TaskHandle_t serialTaskHandle, oledTaskHandle, fsmTaskHandle;
 
 ///////////////////////////////////////////////// DHT22 SENSOR ////////////////////////////////////////////////////
 
-#define DHTPIN 36
+#define DHTPIN 34
 #define DHTTYPE DHT21
 
 DHT dht(DHTPIN, DHTTYPE);
