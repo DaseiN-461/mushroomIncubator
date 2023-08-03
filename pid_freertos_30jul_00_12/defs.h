@@ -38,12 +38,12 @@ PIDTaskArguments pidHumArgs = {
 
 // Relé de salida al actuador de Temperatura
         // PIN de salida
-#define RELAY_PIN_HEATER 34
+#define RELAY_PIN_HEATER 16
         // Indicador de salida (LED_BUILTIN ESP32 DEVKIT V1)
 #define LED_PIN 2
 
 // Relé de salida al actuador de Humedad
-#define RELAY_PIN_HUMIDIFIER 12
+#define RELAY_PIN_HUMIDIFIER 17
 
 
 
@@ -101,7 +101,7 @@ TaskHandle_t serialTaskHandle, oledTaskHandle, fsmTaskHandle;
 
 ///////////////////////////////////////////////// DHT22 SENSOR ////////////////////////////////////////////////////
 
-#define DHTPIN 23
+#define DHTPIN 36
 #define DHTTYPE DHT21
 
 DHT dht(DHTPIN, DHTTYPE);
@@ -109,11 +109,11 @@ DHT dht(DHTPIN, DHTTYPE);
 
 ////////////////////////////////////////////////// USER INTERFACE BUTTONS //////////////////////////////////////////////////
 
-#define TOUCH_PIN_UP  T9  // Pin táctil T4 pin13
-#define TOUCH_PIN_DOWN  T4  // Pin táctil T9 pin32
+#define TOUCH_PIN_UP  T9  // Pin táctil T9 pin32
+#define TOUCH_PIN_DOWN  T8  // Pin táctil T8 pin33
 #define TOUCH_PIN_SEL  T7  // Pin táctil T7 pin27
-#define TOUCH_PIN_BACK  T0  // Pin táctil T0 pin04
-#define TOUCH_PIN_NEXT  T3  // Pin táctil T3 pin15
+#define TOUCH_PIN_BACK  T6  // Pin táctil T6 pin14
+#define TOUCH_PIN_NEXT  T5  // Pin táctil T5 pin12
 
 volatile bool touchUpPressed = false;
 volatile bool touchDownPressed = false;
