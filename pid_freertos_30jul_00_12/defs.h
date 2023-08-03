@@ -112,14 +112,14 @@ DHT dht(DHTPIN, DHTTYPE);
 #define TOUCH_PIN_UP  T9  // Pin táctil T4 pin13
 #define TOUCH_PIN_DOWN  T4  // Pin táctil T9 pin32
 #define TOUCH_PIN_SEL  T7  // Pin táctil T7 pin27
-#define TOUCH_PIN_LEFT  T0  // Pin táctil T0 pin04
-#define TOUCH_PIN_RIGHT  T3  // Pin táctil T3 pin15
+#define TOUCH_PIN_BACK  T0  // Pin táctil T0 pin04
+#define TOUCH_PIN_NEXT  T3  // Pin táctil T3 pin15
 
 volatile bool touchUpPressed = false;
 volatile bool touchDownPressed = false;
 volatile bool touchSelPressed = false;
-volatile bool touchLeftPressed = false;
-volatile bool touchRightPressed = false;
+volatile bool touchBackPressed = false;
+volatile bool touchNextPressed = false;
 
 
  
@@ -226,9 +226,9 @@ void IRAM_ATTR touchDownISR() {
 void IRAM_ATTR touchSelISR() {
   touchSelPressed = true;
 }
-void IRAM_ATTR touchLeftISR() {
-  touchLeftPressed = true;
+void IRAM_ATTR touchBackISR() {
+  touchBackPressed = true;
 }
-void IRAM_ATTR touchRightISR() {
-  touchRightPressed = true;
+void IRAM_ATTR touchNextISR() {
+  touchNextPressed = true;
  }

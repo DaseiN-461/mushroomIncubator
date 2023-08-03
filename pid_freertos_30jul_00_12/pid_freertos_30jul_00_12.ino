@@ -28,8 +28,8 @@ void setup()
         touchAttachInterrupt(TOUCH_PIN_UP, touchUpISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
         touchAttachInterrupt(TOUCH_PIN_DOWN, touchDownISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
         touchAttachInterrupt(TOUCH_PIN_SEL, touchSelISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
-        touchAttachInterrupt(TOUCH_PIN_LEFT, touchLeftISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
-        touchAttachInterrupt(TOUCH_PIN_RIGHT, touchRightISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+        touchAttachInterrupt(TOUCH_PIN_BACK, touchBackISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
+        touchAttachInterrupt(TOUCH_PIN_NEXT, touchNextISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
       
         
         oledSetup();
@@ -148,7 +148,7 @@ void mainTask(void* pvParameters){
                 ///////////////////////////// USER INTERFACE FSM TASK //////////////////////////////////////////////
                 //////////////////////////////////////////////////////////////////////////////
                 // Condicion para administrar la tarea de la máquina de estados: si ningún botón es presionado.
-                if(touchUpPressed or touchDownPressed or touchLeftPressed or touchRightPressed or touchSelPressed){
+                if(touchUpPressed or touchDownPressed or touchBackPressed or touchNextPressed or touchSelPressed){
 
                         // Si al menos un botón está siendo presionado.
                         //Si la tarea estaba suspendida, se reanuda.

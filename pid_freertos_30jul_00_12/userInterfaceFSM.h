@@ -52,24 +52,24 @@ void stateMachine(state_UI currentState, void* pvParameters){
                         }
                   
                         // Si el boton de Derecha es presionado
-                        if(touchRightPressed){
+                        if(touchNextPressed){
                                 // Si se seleccionó la configuración PID
                                 if(config_pid){
                                         // Entonces el siguiente estado es la seleccion del PID
                                         currentStateUI = sel_pid;
-                                        touchRightPressed = false;   
+                                        touchNextPressed = false;   
                                 // Se seleccionó la configuración del UART           
                                 }else{
-                                      touchRightPressed = false;                                     
+                                      touchNextPressed = false;                                     
                                 }
-                                touchRightPressed = false;  
+                                touchNextPressed = false;  
                         }
                   
                         // Si el boton Izquierda es presionado
-                        if (touchLeftPressed){
+                        if (touchBackPressed){
                                 // Entonces vuelve al estado MONITOR
                                 currentStateUI = pid_monitor;
-                                touchLeftPressed = false;
+                                touchBackPressed = false;
                         }
                         break;
                         
@@ -93,7 +93,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                 currentStateUI = sel_pid_enable;
                                 touchSelPressed = false;
                         }   
-                        if(touchLeftPressed){
+                        if(touchBackPressed){
                                 // Vuelve a la selección de configuración
                                 currentStateUI = sel_config;
                         }
@@ -114,7 +114,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
                           }
 
                           // Si el boton Derecha es presionado, se confirma la seleccion
-                          if(touchRightPressed){
+                          if(touchNextPressed){
                                   
                                   // Si el PID seleccionado es el de temperatura
                                   if(pid_temp){
@@ -150,12 +150,12 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                   }
                                   
                                   
-                                  touchRightPressed = false;                              
+                                  touchNextPressed = false;                              
                             
                           }
 
-                          // Si el boton LEFT es presionado
-                          if(touchLeftPressed){
+                          // Si el boton BACK es presionado
+                          if(touchBackPressed){
                                   // Vuelve a la selección del PID
                                   currentStateUI = sel_pid;
                           }
@@ -199,19 +199,19 @@ void stateMachine(state_UI currentState, void* pvParameters){
     
                         // Si el boton Izquierda es presionado, se confirma la selección
                         // La configuración debe ser guardada en la EEPROM
-                        if(touchLeftPressed){
+                        if(touchBackPressed){
                                 // Guarda en la EEPROM la configuración establecida
                                 save_config();
 
                                 // El siguiente estado es el monitor de los PID
                                 currentStateUI= pid_monitor;
-                                touchLeftPressed = false;                          
+                                touchBackPressed = false;                          
                         }
                         
                         break;  
         }
-        touchLeftPressed = false;
-        touchRightPressed = false;
+        touchBackPressed = false;
+        touchNextPressed = false;
         touchUpPressed = false;
         touchDownPressed = false;
         touchSelPressed = false;
@@ -272,7 +272,7 @@ void state_selConfig_printOled(){
               }
               oled.print("]\n\n");
               
-              oled.print("UP: TX UART (!)\nDOWN: PID\nLEFT: BACK TO MONITOR\nRIGHT: GO NEXT");
+              oled.print("UP: TX UART (!)\nDOWN: PID\nBACK: BACK TO MONITOR\nNEXT: GO NEXT");
               
               oled.display();
 }
@@ -287,7 +287,7 @@ void state_selPID_printOled(){
               }else{
                 oled.print("->[PID humedad]\n");
               }
-              oled.print("\nUP: TEMPERATURA\nDOWN:HUMEDAD\nSEL:SELECT\nLEFT: GO BACK\nRIGHT:UNDEFINED");
+              oled.print("\nUP: TEMPERATURA\nDOWN:HUMEDAD\nSEL:SELECT\nBACK: GO BACK\nNEXT:UNDEFINED");
               oled.display();
 }
 
@@ -306,7 +306,7 @@ void state_pidEnable_printOled(){
                 oled.print("\t->OFF\n");
               }
 
-              oled.print("\nUP:ON\nDOWN:OFF\nRIGHT: GO NEXT\nLEFT: BACK\nSEL: UNDEFINED");
+              oled.print("\nUP:ON\nDOWN:OFF\nNEXT: GO NEXT\nBACK: BACK\nSEL: UNDEFINED");
               
               oled.display();
 }
@@ -323,8 +323,8 @@ void state_configSetpoint_printOled(double setpoint){
 
                       oled.print("\n\nUP:   +\n");
                       oled.print("DOWN: -\n");
-                      oled.print("LEFT: SET AND SAVE\n");
-                      oled.print("RIGHT: UNDEFINED\n");
+                      oled.print("BACK: SET AND SAVE\n");
+                      oled.print("NEXT: UNDEFINED\n");
                       oled.print("SEL: UNDEFINED\n");
                       oled.display();
 }
