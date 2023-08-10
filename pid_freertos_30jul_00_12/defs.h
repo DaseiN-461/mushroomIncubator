@@ -98,15 +98,6 @@ TaskHandle_t serialTaskHandle, oledTaskHandle, fsmTaskHandle;
 
 
 
-
-///////////////////////////////////////////////// DHT22 SENSOR ////////////////////////////////////////////////////
-
-#define DHTPIN 34
-#define DHTTYPE DHT21
-
-DHT dht(DHTPIN, DHTTYPE);
-
-
 ////////////////////////////////////////////////// USER INTERFACE BUTTONS //////////////////////////////////////////////////
 
 #define TOUCH_PIN_UP  T9  // Pin táctil T9 pin32
@@ -163,6 +154,34 @@ bool serialTxEnable = false;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////// FUNCTIONS ///////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////// TAKE MEASURES /////////////////////////////////////////////////
+
+Adafruit_BME280 bme;
+
+bool isConnected;
+
+void connectSensor(){
+        while (!isConnected){
+                if (!bme.begin(0x76)) {
+                        Serial.println("No se pudo encontrar el sensor BME280. Verifica la conexión.");  
+                }else{
+                        Serial.println("Sensor is connected");
+                        isConnected = true;
+                }
+                vTaskDelay(500/portTICK_PERIOD_MS);
+        }
+}
+
+double temperatureMeasure(){
+  float temperatura = bme.readTemperature();
+  return temperatura;
+}
+
+double humidityMeasure(){
+  float humidity = bme.readHumidity();
+  return humidity;
+}
 
 
 /////////////////////////////////////////// SALIDAS DEL PID ////////////////////////////

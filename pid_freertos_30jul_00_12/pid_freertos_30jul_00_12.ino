@@ -10,7 +10,9 @@ void setup()
   
         Serial.begin(115200);
         Wire.begin(SDA_PIN, SCL_PIN);
-        dht.begin();
+
+        
+        connectSensor();
 
         // La memoria EEPROM del ESP32 es de 4096 BYTES
         EEPROM.begin(4096);
@@ -21,7 +23,6 @@ void setup()
       
       
         pinMode(LED_PIN, OUTPUT);
-        pinMode(DHTPIN, INPUT);
        
       
         // Configurar los pines táctiles como entradas
@@ -74,22 +75,14 @@ void task_PID(void* pvParameters){
         
       
         args->windowStartTime = millis();
-        bool measureOK = false;
+        
         while(1){
           
-                // Mientras no se obtenga una lectura del sensor adecuada, el sistema no continúa y se queda detenida en el búcle
-                while(!measureOK){
-                        if(args->id=="Temperature"){
-                                args->input = dht.readTemperature();
-                        }else if(args->id=="Humidity"){
-                                args->input = dht.readHumidity();
-                        }
-                        if (isnan(args->input)) {
-                                Serial.println(F("Failed to read from DHT sensor!"));
-                                // Advertencia en pantalla OLED sobre la falla en el sensor.
-                        }else{
-                                measureOK = true;
-                        }
+                if(args->id=="Temperature"){
+                        args->input = temperatureMeasure();
+                        Serial.println(temperatureMeasure());
+                }else if(args->id=="Humidity"){
+                        args->input = humidityMeasure();
                 }
 
                 // Actualiza el valor de salida del PID
@@ -98,8 +91,8 @@ void task_PID(void* pvParameters){
                 // La salida del PID la utiliza para modular las conmutaciones del rele de salida
                 pidToActuator(pvParameters);
             
-                measureOK = false;
-                vTaskDelay(50/portTICK_PERIOD_MS);
+                isConnected = false;
+                vTaskDelay(500/portTICK_PERIOD_MS);
         }
 }
 
