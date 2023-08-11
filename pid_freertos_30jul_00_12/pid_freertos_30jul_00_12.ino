@@ -23,6 +23,8 @@ void setup()
       
       
         pinMode(LED_PIN, OUTPUT);
+        pinMode(RELAY_PIN_HEATER,OUTPUT);
+        pinMode(RELAY_PIN_HUMIDIFIER,OUTPUT);
        
       
         // Configurar los pines táctiles como entradas
