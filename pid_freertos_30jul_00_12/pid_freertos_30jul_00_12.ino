@@ -11,7 +11,7 @@ void setup()
         Serial.begin(115200);
         Wire.begin(SDA_PIN, SCL_PIN);
 
-        
+        oledSetup();
         connectSensor();
 
         // La memoria EEPROM del ESP32 es de 4096 BYTES
@@ -35,7 +35,7 @@ void setup()
         touchAttachInterrupt(TOUCH_PIN_NEXT, touchNextISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
       
         
-        oledSetup();
+        
 
       
         xTaskCreatePinnedToCore(task_PID, "PID temp", 20*1024, &pidTempArgs, 3, &pidTempTaskHandle,0);
