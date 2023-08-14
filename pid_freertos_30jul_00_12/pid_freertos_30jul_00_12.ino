@@ -41,7 +41,7 @@ void setup()
         xTaskCreatePinnedToCore(task_PID, "PID temp", 20*1024, &pidTempArgs, 3, &pidTempTaskHandle,0);
         xTaskCreatePinnedToCore(task_PID, "PID hum", 20*1024, &pidHumArgs, 3, &pidHumTaskHandle,0);
         
-        //xTaskCreatePinnedToCore(task_serialPrint, "serial TX", 5*1024, NULL, 1, &serialTaskHandle,1);
+        xTaskCreatePinnedToCore(task_serialPrint, "serial TX", 5*1024, NULL, 1, &serialTaskHandle,1);
        
       
         xTaskCreatePinnedToCore(task_MONITOR, "[oled] monitor task", 10*1024, NULL, 1, &oledTaskHandle,1);
@@ -82,7 +82,6 @@ void task_PID(void* pvParameters){
           
                 if(args->id=="Temperature"){
                         args->input = temperatureMeasure();
-                        Serial.println(temperatureMeasure());
                 }else if(args->id=="Humidity"){
                         args->input = humidityMeasure();
                 }
@@ -107,8 +106,9 @@ void task_PID(void* pvParameters){
 void task_MONITOR(void* pvParameters){
   
         while(1){
-                state_monitor_printOled();
                 
+                state_monitor_printOled();
+                //16ms for 60<frames/second
                 vTaskDelay(200/portTICK_PERIOD_MS);
         }
 }
@@ -203,12 +203,13 @@ void mainTask(void* pvParameters){
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////////////// SERIAL TX ////////////////////////////////////////////////////////////////
+                // Condición para administrar la tarea de TX serial: 
                 if(pidTempArgs.enable or pidHumArgs.enable){
                         
                 }
                 
 
-                // Condición para administrar la tarea de TX serial: 
+                
                 vTaskDelay(100/portTICK_PERIOD_MS);
         }
 }
@@ -239,13 +240,9 @@ void task_FSM(void* pvParameters){
 
 void task_serialPrint(void* pvParameters){
         PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
-        bool firstDataSended = false;
         while(1){
-                if(firstDataSended){
-                        Serial.print(",");
-                }
+                
                 if(pidTempArgs.enable or pidHumArgs.enable){
-                        Serial.print("(");
                         if(pidTempArgs.enable){
                                 Serial.printf("%.2f,%.2f",pidTempArgs.input,pidTempArgs.output);
                                 if(pidHumArgs.enable){
@@ -255,11 +252,10 @@ void task_serialPrint(void* pvParameters){
                         if(pidHumArgs.enable){
                                 Serial.printf("%.2f,%.2f",pidHumArgs.input,pidHumArgs.output);
                         }
-                        Serial.print(")");
-                        firstDataSended = true;
+                        Serial.println();
                 }
                 
-                //16ms for 60<frames/second
-                vTaskDelay(500/portTICK_PERIOD_MS);
+                
+                vTaskDelay(1000/portTICK_PERIOD_MS);
         }
 }
