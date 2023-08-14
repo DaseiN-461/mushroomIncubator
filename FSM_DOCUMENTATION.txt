@@ -1,0 +1,73 @@
+La máquina de estados describe el flujo y la lógica entre los distintos estados de la máquina.
+
+Esta compuesta de los siguientes estados.
+
+
+
+Para la implementación en código c++, se utilizó las siguientes estructuras de datos, funciones y tareas.
+
+[Hecho]	Necesito, crear una tarea, para que la máquina de estados se esté ejecutando sólo cuando las interrupciones por botones táctiles activen la flag de touchPINPressed. Una vez terminada la rutina, utilizar el flag (touchPINPressed) para suspender la tarea que ejecuta el flujo de la máquina de estados. Para ahorrar recursos.
+
+Añadir las funciones:
+				
+				[Hecho] Ajuste de enable del PID.
+				[Hecho] Ajuste de setpoint de PID humedad.
+				[] Dos configuraciones de ganancias (agresiva y conservadora).
+				[] Añadir limites a los valores de setpoint.
+				[] Corregir bug de valor inexacto.
+				[] Alerta de falla en medición del sensor a través de la pantalla OLED.
+				
+				Idealmente ...
+				[] Ajuste de ganancias del PID.
+				[] Ajuste de la ventana de tiempo de la salida del PID.
+				[] Ajuste de salidas máximas.
+
+
+Crear dos máquinas de estados, con retorno 1. Para la selección del PID, si la salida es uno, ya se escogió el pid. Con una interrupción (touchPINPressed) pasa a la siguiente máquina de estados, para realizar la configuración de los valores en la estructura de tipo . 
+
+En las lineas 114, del codigo de la fsm. El caso del estado seleccion de habilitacion, se termina la configur
+
+[] Corregir, cuando se suspende las tareas de pid, ajustar la salida a 0.
+[] Corregir, cuando se desactiva el PID, no se devuelve a la pantalla.
+
+Cada vez que se desactiva el PID, al volver a activarlo pedirá la consigna (setpoint) y por lo tanto se configura al momento de hechar a andar. 
+	Una vez que tenga memoria, se podrá guardar una configuracion y apagar hasta el momento en que tenga que partir preconfigurado con los sistemas deseados a la configuracion deseada.
+
+A futuro, hacer con conexión wifi, cuando tenga sistema de registro de datos (logger) y distintas tareas para registrar datos y transmitirlo por wifi. 
+
+Se corrigió varios bugs del UI, pero algunos del sistema ahora no permiten el arranque del pid, puede ser por que el sensor ya no daba lecturas, las realiza cada milesimas de segundos cuando en realidad el sensor minimo mide cada 2 segundos.
+
+[]corregir ese tiempo
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Tarea URGENTE !!!!!!!!!!!!!!!!!!
+				[Hecho] Al iniciar el programa, debe cargar lo que este en EEPROM, como configuracion predeterminada. 
+
+				[Hecho] Maquina de estados linea 190, una vez seleccionada la configuración. guardar en eeprom los valores de consigna y enable.
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Al redactar un README para un repositorio Git, es importante proporcionar información clara y útil para los usuarios y colaboradores potenciales. Un buen README puede hacer que tu proyecto sea más accesible y atractivo para otros desarrolladores. Aquí hay algunas cosas que usualmente se consideran al redactar un README:
+
+Descripción del proyecto: Comienza con una breve descripción del proyecto. Explica en qué consiste el proyecto, cuál es su propósito y qué problema resuelve. Esto debe ser claro y conciso.
+
+Instrucciones de instalación: Proporciona instrucciones claras sobre cómo instalar y configurar el proyecto. Incluye cualquier dependencia que deba ser instalada y los pasos necesarios para poner el proyecto en funcionamiento.
+
+Ejemplos de uso: Proporciona ejemplos de cómo utilizar el proyecto. Esto puede incluir comandos de línea de comandos, ejemplos de código o capturas de pantalla que muestren cómo se ve y cómo se comporta el proyecto.
+
+Estructura del proyecto: Describe la estructura de directorios del proyecto y explica el propósito de cada uno. Esto es especialmente útil para proyectos más grandes y complejos.
+
+Contribución: Explica cómo otros desarrolladores pueden contribuir al proyecto. Puedes incluir información sobre cómo informar errores, enviar solicitudes de extracción y seguir las pautas de contribución.
+
+Licencia: Asegúrate de incluir información sobre la licencia del proyecto. Especifica qué derechos y restricciones tienen los usuarios y colaboradores en cuanto al uso del código.
+
+Estado del proyecto: Si el proyecto está en desarrollo activo o si ya no se mantiene, es útil informar a los usuarios sobre el estado actual del proyecto.
+
+Contacto: Si deseas que los usuarios se pongan en contacto contigo por cualquier motivo, proporciona información de contacto como tu dirección de correo electrónico o enlaces a tus redes sociales.
+
+Enlaces útiles: Si tienes documentación adicional, tutoriales, sitios web o cualquier recurso relacionado con el proyecto, incluye enlaces útiles en el README.
+
+Recuerda que el objetivo principal del README es hacer que tu proyecto sea accesible y comprensible para otros desarrolladores. Mantén el README actualizado a medida que el proyecto evoluciona y considera los comentarios de la comunidad para mejorar su contenido.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
