@@ -28,12 +28,13 @@ A continuación se presenta la definición de los pines y una breve descripción
 | HEATER      |D16| Salida digital al actuador de temperatura.|
 | LED BUILTIN |D2| Indicador LED interno de la placa de desarrollo, está conectado a la salida D34.|
 | HUMIDIFIER     |D17| Salida digital al actuador de humedad.|
-|DHT 21|D34| Entrada digital del sensor de temperatura y humedad.
 |TOUCH UP|D32| Entrada táctil para el envío de comando arriba.
 |TOUCH DOWN|D33|Entrada táctil para el envío de comando abajo.
 |TOUCH SELECT|D27|Entrada táctil para el envío de comando selección.
 |TOUCH BACK|D14| Entrada táctil para el envío de comando atrás.
 |TOUCH NEXT|D12|Entrada táctil para el envío de comando siguiente.
-|SDA|D21| Intercambio de datos por comunicación i2c con la pantalla.
-|SCL|D22| Señal de sincronización de la comunicación i2c con la pantalla.
+|SDA|D21| Intercambio de datos por comunicación i2c con la pantalla y sensor.
+|SCL|D22| Señal de sincronización de la comunicación i2c con la pantalla y sensor.
+
+# Descricpión del software
 
