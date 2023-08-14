@@ -20,7 +20,7 @@ PIDTaskArguments pidTempArgs = {
     .id="Temperature",
     .enable=false,
     .setpoint=27,
-    .kp=200, .ki=1, .kd=1,
+    .kp=500, .ki=1, .kd=0,
     .windowSize = 2000
   };
 
@@ -28,7 +28,7 @@ PIDTaskArguments pidHumArgs = {
     .id="Humidity",
     .enable=false,
     .setpoint=90,
-    .kp=500, .ki=1, .kd=1,
+    .kp=500, .ki=1, .kd=0,
     .windowSize=5000
   };
 
