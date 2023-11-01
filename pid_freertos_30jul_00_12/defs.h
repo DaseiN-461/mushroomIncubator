@@ -165,6 +165,7 @@ void connectSensor(){
         while (!isConnected){
                 if (!bme.begin(0x76)) {
                         Serial.println("No se pudo encontrar el sensor BME280. Verifica la conexión.");  
+                        isConnected = true;
                 }else{
                         Serial.println("Sensor is connected");
                         isConnected = true;

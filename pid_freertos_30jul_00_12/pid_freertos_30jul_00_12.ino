@@ -1,6 +1,7 @@
 #include "libs.h"
 #include "defs.h"
 #include "userInterfaceFSM.h"
+#include "mqtt.h"
 
 
 
@@ -12,10 +13,10 @@ void setup()
         Wire.begin(SDA_PIN, SCL_PIN);
 
         oledSetup();
-        connectSensor();
+        connectSensor();    ////////////////////////////////////////////////// Reactivar///////////////////////////
 
         // La memoria EEPROM del ESP32 es de 4096 BYTES
-        EEPROM.begin(4096);
+        EEPROM.begin(1024);
 
         // Cargar la configuracion guardada en la EEPROM
         load_config();
@@ -35,8 +36,18 @@ void setup()
         touchAttachInterrupt(TOUCH_PIN_NEXT, touchNextISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
       
         
-        
+        EEPROM_setup();
+        WiFi.mode(WIFI_STA);
+        if (!connectToWiFi()) {       // Si no ha conectado a la red registrada
+          startAccessPoint();                     // Crea un punto de acceso para configurar las credenciales de la red
+          startWebServer();                       // Crea un servidor web asincrono http para realizar la configuración
+        }else{                      //   Si se ha conectado a la red registrada
+          //Optional
+          //startWebServer();       // Podría llevar otra web para otro tipo de configuracion com
+        }
+        client.setServer(mqttServer, mqttPort); // Configura el servidor mqtt
 
+        xTaskCreatePinnedToCore(task_mqtt, "task_mqtt", 10*1024, NULL, 2, NULL,1);
       
         xTaskCreatePinnedToCore(task_PID, "PID temp", 20*1024, &pidTempArgs, 3, &pidTempTaskHandle,0);
         xTaskCreatePinnedToCore(task_PID, "PID hum", 20*1024, &pidHumArgs, 3, &pidHumTaskHandle,0);
@@ -56,7 +67,10 @@ void setup()
         //vTaskSuspend(pidHumTaskHandle);
         //vTaskSuspend(serialTaskHandle);
         //vTaskSuspend(oledTaskHandle);
-  
+
+        
+
+        
 }
 
 void loop()
@@ -64,6 +78,29 @@ void loop()
   
 
 }
+
+void task_mqtt(void* pvParameters){
+  
+  while(1){
+    // Tu bucle principal
+    
+    if (!client.connected()) {
+      reconnect();
+    }
+    client.loop();
+    String data = crearMensaje(12.4, 214.5, 123.4);
+    char* message = strdup(data.c_str());
+    if (client.publish(mqttTopic, message)) {
+      Serial.println("Mensaje publicado en MQTT");
+    } else {
+      Serial.println("Error al publicar el mensaje en MQTT");
+    }
+    free(message);
+    delay(5000); // Intervalo de publicación
+  }
+}
+
+
 
 void task_PID(void* pvParameters){
         PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
@@ -237,6 +274,7 @@ void task_FSM(void* pvParameters){
                  vTaskDelay(50/portTICK_PERIOD_MS);        
         } 
 }
+
 
 void task_serialPrint(void* pvParameters){
         PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
