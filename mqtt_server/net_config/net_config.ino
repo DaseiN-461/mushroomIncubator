@@ -27,49 +27,76 @@ const unsigned long accessPointTimeout = 10000;  // Tiempo de espera para el mod
 AsyncWebServer server(80);
 
 float setpoint = 0.0;
-float kp = 1.0;
-float ki = 0.0;
-float kd = 0.0;
+float t_i = 1.1;
+float t_o = 2.2;
+float h_i = 3.0;
+float h_o = 4.3;
 
-
+// Tu mensaje a publicar
+char message[50];
 
 void setup() {
   Serial.begin(115200);
-  EEPROM.begin(512);
-  EEPROM.get(ssidAddress, storedSSID);
-  EEPROM.get(passwordAddress, storedPassword);
+  EEPROM_setup();
 
   WiFi.mode(WIFI_STA);
 
-  if (!connectToWiFi()) {
-    startAccessPoint();
-    startWebServer();
-  }else{
-    startWebServer();
+  if (!connectToWiFi()) {       // Si no ha conectado a la red registrada
+    startAccessPoint();                     // Crea un punto de acceso para configurar las credenciales de la red
+    startWebServer();                       // Crea un servidor web asincrono http para realizar la configuración
+  }else{                      //   Si se ha conectado a la red registrada
+    //Optional
+    //startWebServer();       // Podría llevar otra web para otro tipo de configuracion com
+
+    client.setServer(mqttServer, mqttPort); // Configura el servidor mqtt 
+
+    while(true){
+      // Tu bucle principal
+      if (!client.connected()) {
+        reconnect();
+      }
+      client.loop();
+
+  
+
+
+
+
+      
+      
+      String data = crearMensaje(t_i, t_o, h_i);
+      
+      char* message = strdup(data.c_str());
+
+
+      if (client.publish(mqttTopic, message)) {
+        Serial.println("Mensaje publicado en MQTT");
+      } else {
+        Serial.println("Error al publicar el mensaje en MQTT");
+      }
+      free(message);
+      delay(5000); // Intervalo de publicación
+    }
+
   }
 
   // Resto del codigo
-  client.setServer(mqttServer, mqttPort);
+  
   
 }
 
+
+
+String crearMensaje(float valor1, float valor2, float valor3) {
+  // Calcular el tamaño necesario para la cadena
+  String mensaje = String(valor1) + "," + String(valor2) + "," + String(valor3);
+  
+  return mensaje;
+}
+
+
 void loop() {
-  // Tu bucle principal
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-
-  // Tu mensaje a publicar
-  char message[] = "Hola desde ESP32";
-
-  if (client.publish(mqttTopic, message)) {
-    Serial.println("Mensaje publicado en MQTT");
-  } else {
-    Serial.println("Error al publicar el mensaje en MQTT");
-  }
-
-  delay(5000); // Intervalo de publicación
+  
 }
 
 bool connectToWiFi() {
@@ -93,6 +120,12 @@ bool connectToWiFi() {
   Serial.print("\nConexión exitosa a la red Wi-Fi.\n\t ---------------> SSID: " + String(storedSSID) + ", localIP: ");
   Serial.println(WiFi.localIP());
   return true;
+}
+
+void EEPROM_setup(){
+  EEPROM.begin(512);
+  EEPROM.get(ssidAddress, storedSSID);
+  EEPROM.get(passwordAddress, storedPassword);
 }
 
 void startWebServer() {
