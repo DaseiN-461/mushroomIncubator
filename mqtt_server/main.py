@@ -1,5 +1,7 @@
 import paho.mqtt.client as mqtt
 import keyboard
+import serial
+
 
 # Configuración del broker y el tema
 broker_address = "mqtt.eclipseprojects.io"
