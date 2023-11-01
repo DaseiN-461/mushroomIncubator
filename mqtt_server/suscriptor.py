@@ -1,4 +1,12 @@
 import paho.mqtt.client as mqtt
+import csv
+
+# Crear un archivo CSV para guardar los mensajes
+csv_file = open("mensajes.csv", mode="w", newline="")
+csv_writer = csv.writer(csv_file)
+csv_writer.writerow(["Mensaje"])  # Escribir encabezado
+
+
 
 # Configuración del broker y el tópico
 broker_address = "mqtt.eclipseprojects.io"
@@ -7,8 +15,10 @@ topic = "mi_topico"    # Reemplaza con el tópico que deseas
 
 # Callback cuando se recibe un mensaje
 def on_message(client, userdata, message):
-    print(f"Mensaje recibido en el tópico '{message.topic}': {str(message.payload)}")
-
+    msg_str = message.payload.decode("utf-8")
+    print(f"Mensaje recibido en el tópico '{message.topic}': {str(msg_str)}")
+    csv_writer.writerow([msg_str])
+    csv_file.flush()
 # Crear un cliente MQTT
 client = mqtt.Client("suscriptor")
 
