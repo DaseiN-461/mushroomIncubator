@@ -7,7 +7,7 @@
 #include <PubSubClient.h>
 const char* mqttServer = "mqtt.eclipseprojects.io";
 const int mqttPort = 1883;
-const char* mqttTopic = "mi_topico";
+const char* mqttTopic = "mi_top";
 
 
 WiFiClient espClient;
@@ -29,9 +29,9 @@ AsyncWebServer server(80);
 // Tu mensaje a publicar
 char message[50];
 
-String crearMensaje(float valor1, float valor2, float valor3) {
+String crearMensaje(float valor1, float valor2, float valor3,float valor4, float valor5, float valor6) {
   // Calcular el tamaño necesario para la cadena
-  String mensaje = String(valor1) + "," + String(valor2) + "," + String(valor3);
+  String mensaje = String(valor1) + "," + String(valor2) + "," + String(valor3) + "," + String(valor4) + "," + String(valor5) + "," + String(valor6);
   
   return mensaje;
 }

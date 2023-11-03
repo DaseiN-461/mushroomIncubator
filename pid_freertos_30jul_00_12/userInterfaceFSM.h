@@ -17,6 +17,7 @@ void state_selConfig_printOled();
 void state_selPID_printOled();
 void state_configSetpoint_printOled(double setpoint);
 void state_pidEnable_printOled();
+void state_tx_enable_printOled();
 
 void stateMachine(state_UI currentState, void* pvParameters){
         PIDTaskArguments* args = (PIDTaskArguments*)pvParameters;
@@ -41,6 +42,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                 // No se seleccionó la configuración de PID 
                                 // Entonces el tipo de configuración es de TX SERIAL
                                 config_pid = false;
+                                config_tx = true;
                                 touchUpPressed = false;        
                         }
                         
@@ -48,6 +50,7 @@ void stateMachine(state_UI currentState, void* pvParameters){
                         if(touchDownPressed){
                                 // Se seleccionó la configuración PID
                                 config_pid = true;
+                                config_tx = false;
                                 touchDownPressed = false;
                         }
                   
@@ -59,7 +62,8 @@ void stateMachine(state_UI currentState, void* pvParameters){
                                         currentStateUI = sel_pid;
                                         touchNextPressed = false;   
                                 // Se seleccionó la configuración del UART           
-                                }else{
+                                }if(config_tx){
+                                      currentStateUI = sel_tx_enable,
                                       touchNextPressed = false;                                     
                                 }
                                 touchNextPressed = false;  
@@ -96,10 +100,32 @@ void stateMachine(state_UI currentState, void* pvParameters){
                         if(touchBackPressed){
                                 // Vuelve a la selección de configuración
                                 currentStateUI = sel_config;
+                                touchBackPressed = false;
                         }
                         break;
                   
+                  case sel_tx_enable:
+                        
+                        if(touchUpPressed){
+                                tx_enable = true;
+                                touchUpPressed = false;
+                                
+                        }
+                        if(touchDownPressed){
+                                tx_enable = false;
+                                touchDownPressed = false;
+                                
+                        }
+                        if(touchSelPressed){
+                                currentStateUI = pid_monitor;
+                                touchSelPressed = false;
+                                
+                        }
+                        break;  
+
+
                   // Si el estado es la seleccion de activacion del PID
+                  
                   case sel_pid_enable:
             
                           if(touchUpPressed){
@@ -268,7 +294,7 @@ void state_selConfig_printOled(){
               if(config_pid){
                 oled.print("PID");
               }else{
-                oled.print("NO DISPONIBLE");
+                oled.print("MQTT TX");
               }
               oled.print("]\n\n");
               
@@ -311,6 +337,20 @@ void state_pidEnable_printOled(){
               oled.display();
 }
 
+void state_tx_enable_printOled(){
+        oled.clearDisplay();
+        oled.setCursor(0,0);
+
+        oled.print("MQTT TX enable?\n");
+        if(tx_enable){
+                oled.print("\n\t-> yes");
+                oled.print("\n\t no");
+        }else{
+                oled.print("\n\t yes");
+                oled.print("\n\t-> no");
+        }
+        oled.display();
+}
 void state_configSetpoint_printOled(double setpoint){
                       oled.clearDisplay();
                       oled.setCursor(0,0);

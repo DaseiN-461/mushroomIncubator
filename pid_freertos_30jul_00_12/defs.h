@@ -94,6 +94,7 @@ void load_config(){
   
 ////////////////////////////////////////////////// FreeRTOS //////////////////////////////////////////////////
 TaskHandle_t pidTempTaskHandle, pidHumTaskHandle;
+TaskHandle_t task_mqtt_handle;
 TaskHandle_t serialTaskHandle, oledTaskHandle, fsmTaskHandle; 
 
 
@@ -123,6 +124,7 @@ volatile bool touchNextPressed = false;
   sel_config,
  
   sel_pid,
+  sel_tx_enable,
   sel_pid_enable,
   sel_pid_setpoint,
   sel_pid_windowSize
@@ -131,7 +133,9 @@ volatile bool touchNextPressed = false;
 
 bool pid_temp = true; // pid temp defaul, false = hum
 bool config_pid = true;
+bool config_tx = false;
 bool pid_enable = true;
+bool tx_enable = false;
 
 bool serialTxEnable = false;
 

@@ -36,18 +36,9 @@ void setup()
         touchAttachInterrupt(TOUCH_PIN_NEXT, touchNextISR, 20); // Umbral de sensibilidad táctil (ajustar según necesidades)
       
         
-        EEPROM_setup();
-        WiFi.mode(WIFI_STA);
-        if (!connectToWiFi()) {       // Si no ha conectado a la red registrada
-          startAccessPoint();                     // Crea un punto de acceso para configurar las credenciales de la red
-          startWebServer();                       // Crea un servidor web asincrono http para realizar la configuración
-        }else{                      //   Si se ha conectado a la red registrada
-          //Optional
-          //startWebServer();       // Podría llevar otra web para otro tipo de configuracion com
-        }
-        client.setServer(mqttServer, mqttPort); // Configura el servidor mqtt
+        
 
-        xTaskCreatePinnedToCore(task_mqtt, "task_mqtt", 10*1024, NULL, 2, NULL,1);
+        xTaskCreatePinnedToCore(task_mqtt, "task_mqtt", 10*1024, NULL, 3, &task_mqtt_handle,1);
       
         xTaskCreatePinnedToCore(task_PID, "PID temp", 20*1024, &pidTempArgs, 3, &pidTempTaskHandle,0);
         xTaskCreatePinnedToCore(task_PID, "PID hum", 20*1024, &pidHumArgs, 3, &pidHumTaskHandle,0);
@@ -80,6 +71,16 @@ void loop()
 }
 
 void task_mqtt(void* pvParameters){
+  EEPROM_setup();
+  WiFi.mode(WIFI_STA);
+  if (!connectToWiFi()) {       // Si no ha conectado a la red registrada
+    startAccessPoint();                     // Crea un punto de acceso para configurar las credenciales de la red
+    startWebServer();                       // Crea un servidor web asincrono http para realizar la configuración
+  }else{                      //   Si se ha conectado a la red registrada
+    //Optional
+    //startWebServer();       // Podría llevar otra web para otro tipo de configuracion com
+  }
+  client.setServer(mqttServer, mqttPort); // Configura el servidor mqtt
   
   while(1){
     // Tu bucle principal
@@ -88,7 +89,7 @@ void task_mqtt(void* pvParameters){
       reconnect();
     }
     client.loop();
-    String data = crearMensaje(12.4, 214.5, 123.4);
+    String data = crearMensaje(pidTempArgs.setpoint,pidTempArgs.input, pidTempArgs.output, pidHumArgs.setpoint, pidHumArgs.input, pidHumArgs.output);
     char* message = strdup(data.c_str());
     if (client.publish(mqttTopic, message)) {
       Serial.println("Mensaje publicado en MQTT");
@@ -239,10 +240,14 @@ void mainTask(void* pvParameters){
                 }
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////////////// SERIAL TX ////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////// MQTT TX ////////////////////////////////////////////////////////////////
                 // Condición para administrar la tarea de TX serial: 
                 if(pidTempArgs.enable or pidHumArgs.enable){
-                        
+                        if(tx_enable){
+                                vTaskResume(task_mqtt_handle);
+                        }else{
+                                vTaskSuspend(task_mqtt_handle);
+                        }
                 }
                 
 
@@ -268,6 +273,9 @@ void task_FSM(void* pvParameters){
                                 break;
                         case sel_pid_enable:
                                 state_pidEnable_printOled();
+                                break;
+                        case sel_tx_enable:
+                                state_tx_enable_printOled();
                                 break;
                         
                  }      
